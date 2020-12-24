@@ -1,0 +1,98 @@
+Practice 1 & 2 - Paralelism
+
+Description:  
+  The goal of this practical is to find the number of prime numbers below a number given by the user.
+
+
+Aim: 
+ 	Distributing the workload between different processes and stablish communications between them by using the 
+ 	MPI library 
+	Practice 1: We have to use the Send/Recv operations to share the value imputed by the user and the gather
+	the results of each process
+	Practice 2: We used the collective operations to perfom the same task as in practice number one.
+
+Implementation:
+ ·Assumption: The root process always collects the imputed number by the user
+	Practice number 1:
+		- The sharing of the imputed number by the root:
+			We use a for loop from 1 to the highest rank to send (by using MPI_Send) the number from the root
+			to the other processes. In next line, we have the corresponding receive (for all the 
+			process that are no the root)
+		- The distribution of the workload between process:
+			We wanted to be as fair as possible so we did the following:
+				In the ith (even number, i = 0 in the begining) iteration we start assign the numbers by using 
+				an ascending criteria depending on rank of the process, and in the ith+1 (odd number) iteration
+				we assign the numbers by using a descending criteria 
+            Example: Number 18 with 4 processes
+                      +----+----+----+----+
+                      | P1 | P2 | P3 | P4 |
+                      +----+----+----+----+
+                      |  2 |  3 |  4 |  5 |                     
+                      |  9 |  8 |  7 |  6 |
+                      | 10 | 11 | 12 | 13 |
+                      | 17 | 16 | 15 | 14 |
+                      +----+----+----+----+
+
+        - After that, the gather all each process' result by using the same operations.
+          All the processes that are not the root send its result to the root and the root will receive all 
+          these results and compute the final result.
+
+    Practice number 2:
+    	It is essentially the same aproach by in these case we have using collective operations for the sharing
+    	(MPI_BinomialBcast) and the gathering (MPI_FlattreeColective).
+ 			   Function:    MPI_BinomialBcast
+			   Purpose:     Broadcasts a message from the process with rank root to all
+			   other processes of the group
+
+			   Input args:  
+			            buffer    Starting address of buffer (choice).
+
+			            count     Number of entries in buffer (integer).
+
+			            datatype  Data type of buffer (handle).
+
+			            root      Rank of broadcast root (integer).
+
+             			comm      Communicator (handle).
+
+			 Implementation:
+			 	Assuming for simplicity that the root is 0. In step “i” the processes with
+			 	rank < 2i−1 communicate with the process with myrank + 2i−1
+			    1. We used tree structured comunication
+			        0->1
+       			    0->2, 1->3
+                    0->4, 1->5, 2->6, 3->7
+			    2. Since all the exponential operations are in base two, 
+			    Since all the exponential operations are in base two, 
+			    we used an equivalent operation in binary ( left shifting)
+			    which shifts to left the bits the same number of positions specified in the exponent. 
+			    		    
+
+			   Function:    MPI_FlattreeColective
+			   Purpose:     Broadcasts a message from the process with rank root to all
+			   other processes of the group
+
+			   Input args:  
+			            sendbuf   Starting address of send buffer (choice).
+
+       					recvbuf   Address of receive buffer (choice, significant only at root).
+
+      					count     Number of elements in send buffer (integer).
+
+      					datatype  Data type of elements of send buffer (handle).
+
+      		     		root      Rank of receiving process (integer).
+
+      					comm      Communicator (handle).
+
+
+
+			 Implementation:
+			 	- We send all the results to the root process by using MPI_Send operation. 
+			 	  We carry out a for loop from 1 to the highest rank to gather all the results
+			 	  at the root process.
+			      The root process is the one that has all the results so it is in charge of calculating the 
+			      final result.
+
+Author:
+  Name : Sergio Valle
